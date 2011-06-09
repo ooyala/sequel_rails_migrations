@@ -1,0 +1,40 @@
+                Sequel Rails Migrations
+                    for Rails 2.3
+
+Sequel provides a powerful API and platform for many things, but its migrations
+aren't a great fit for Rails 2.3 out of the box.  Unfortunately, the upgrade to
+Rails 3 is a large undertaking for existing applications, and often you'd like
+to use Sequel sooner than that.
+
+You also have a lot of ActiveRecord migrations in your existing application,
+and you don't especially want to port them to Sequel.
+
+This project can help.
+
+Installing
+----------
+This is a .rake file to be included in a Rails 2.3 project under
+the lib/tasks directory.
+
+Your Sequel migrations should *not* simply be included in the db/migrate
+directory with your older ActiveRecord migrations!  Instead, create
+a db_migrations directory under the Rails project root and put your
+Sequel migrations there.  If you'd prefer a different directory,
+search for "db_migrations" in the .rake file -- put the directory
+where you want it.  Bear in mind that you do need the "../.." in
+the path because the Rakefile is installed into lib/tasks.
+
+Using
+----------
+The included .rake file will override standard Rails tasks like
+db:migrate, db:rollback and db:version.  As usual, you can use
+"rake -T" to get a list of available rake targets.  Any additional
+targets added by this rakefile should be run automatically when
+needed.
+
+Feedback
+----------
+Did this help you?  Did you have problems deploying or using it?
+Let Ooyala know through GitHub.
+
+Want to make improvements?  Pull requests are appreciated.
