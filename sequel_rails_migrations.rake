@@ -19,7 +19,7 @@ require "sequel/extensions/migration"
 #   * You won't be adding more ActiveRecord migrations, so
 #     the two types of migrations will never be interleaved.
 #
-# Some code is adapted from Rails 2.3.5's lib/tasks/databases.rake
+# Some code adapted from Rails 2.3.5's lib/tasks/databases.rake
 
 # TODO(noah): Make "up" and "down" only go those directions
 # TODO(noah): Make STEP work in number of migrations, not just subtract
@@ -168,15 +168,23 @@ end
 def run_sequel_migration(environment, options = {})
   options[:to] = ENV["VERSION"].to_i if ENV["VERSION"]
 
-  # TODO(philc): Remove this debug output. This is to debug C3's CI problems.
-  puts "Running sequel migrations for #{environment}"
+  migrator = new_migrator DB, :target => options[:to], :current => options[:from]
+  pending_migrations = migrator.files.map {|path| File.basename(path).downcase} - migrator.applied_migrations
+  if pending_migrations.empty?
+    puts "No pending migrations."
+    return
+  end
 
-  m = new_migrator DB, :target => options[:to], :current => options[:from]
-  m.run
+  puts "Preparing to run #{pending_migrations.size} pending migrations:"
+  pending_migrations.each do |filename|
+    filename =~ /([0-9]+)_(.*)/
+    version = ($~[1]).to_i
+    name = $~[2]
+    puts '  %4d %s' % [version, name]  # Display version and name
+  end
+
+  migrator.run
   #Rake::Task["db:schema:dump"].invoke if ActiveRecord::Base.schema_format == :ruby  # Dump the schema in Sequel?
-
-  exit_status = $?.exitstatus
-  raise "The DB migrations failed to run." unless (exit_status == 0)
 end
 
 def current_migration_version(db)
@@ -184,7 +192,7 @@ def current_migration_version(db)
 
   # Sequel doesn't really have a "current migration version".  And for the
   # Timestamp Migrator, it's not entirely clear what one would look like.
-  # So we hack it.
+  # So we choose a reasonable default.
 
   applied_migrations = migrator.applied_migrations
   applied_migrations.max.to_i
